@@ -53,7 +53,7 @@ jobs:
             cp -r SP98_* $mydate/
             
             mv *.json ~/project/prix-carburants-data/dist/
-            mv mydate ~/project/prix-carburants-data/dist/
+            mv $mydate ~/project/prix-carburants-data/dist/
 
             cd ~/project/prix-carburants-data/
 
