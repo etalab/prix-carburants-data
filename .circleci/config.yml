@@ -28,12 +28,12 @@ jobs:
           name: Fetch datasets and generate data
           command: |
             . venv/bin/activate
-            wget --content-disposition https://donnees.roulez-eco.fr/opendata/jour
+            wget -P ~/project --content-disposition https://donnees.roulez-eco.fr/opendata/jour
             tmp=(*.zip)
             filename=${tmp[1]}
             mydate=${filename:25:-4}
-            echo "unzip -j "$filename
-            unzip -j $filename
+            echo "unzip "$filename
+            unzip $filename
             rm ${tmp[1]}            
             tmp=(*.xml)
             filename=${tmp[1]}
