@@ -1,0 +1,82 @@
+version: 2
+
+jobs:
+  fetch:
+    docker:
+      - image: circleci/python:3.8
+    working_directory: ~/project/
+    steps:
+      - checkout:
+          path: ~/project
+      - add_ssh_keys:
+          fingerprints:
+            - "6c:76:7b:00:20:3e:ea:0c:e8:d4:32:32:3b:28:7e:a7"
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "requirements.txt" }}
+      - run:
+          name: Install dependencies
+          command: |
+            python -m venv venv
+            . venv/bin/activate
+            pip install -r requirements.txt
+      - save_cache:
+          paths:
+            - ./venv
+          key: v1-dependencies-{{ checksum "requirements.txt" }}
+      - run:
+          name: Fetch datasets and generate data
+          command: |
+            . venv/bin/activate
+            wget --content-disposition https://donnees.roulez-eco.fr/opendata/jour
+            tmp=(*.zip)
+            filename=${tmp[1]}
+            mydate=${filename:25:-4}
+            unzip $filename
+            rm ${tmp[1]}            
+            tmp=(*.xml)
+            filename=${tmp[1]}
+            iconv -f iso-8859-1 -t utf-8 $filename >| $mydate".xml"
+            rm $filename
+            python reformat-prix-carburants.py $mydate".xml"
+
+            git config --global user.email "robot@circleci.com"
+            git config --global user.name "CircleCI"
+            git clone https://github.com/geoffreyaldebert/prix-carburants-data.git
+            python generate_kpis_and_files.py
+            rm latest.geojson            
+            
+            mkdir $mydate
+            cp -r Gazole_* $mydate/
+            cp -r SP95_* $mydate/
+            cp -r SP98_* $mydate/
+            mv *.json ~/projects/prix-carburants-data/dist/
+            mv mydate ~/projets.prix-carburants-data/dist/
+
+            cd ~/projets.prix-carburants-data/covidbackend
+            if [ -n "$(git status --porcelain)" ]; then
+              git add dist
+              git commit -am "New data at $(date -u +'%Y-%m-%dT%H:%M:%SZ') [skip ci]"
+              git push origin master
+            else
+              echo "No changes";
+            fi
+      - persist_to_workspace:
+          root: .
+          paths:
+            - ./venv
+workflows:
+  version: 2
+  commit:
+    jobs:
+      - fetch
+  cron_fetch:
+    triggers:
+      - schedule:
+          cron: "42 1 * * *"
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - fetch
