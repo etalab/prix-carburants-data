@@ -37,14 +37,13 @@ jobs:
             export mydate=${mydate:0:8}
             echo $mydate
             unzip $filename
-            ls
             tmp=(~/project/*.xml)
             export filename=${tmp[0]}
-            iconv -f iso-8859-1 -t utf-8 $filename >| ~/projects/$mydate".xml"
+            iconv -f iso-8859-1 -t utf-8 $filename >| "~/projects/"$mydate".xml"
             ls
             rm -rf ~/projects/$filename
             
-            python reformat-prix-carburants.py ~/projects/$mydate".xml"
+            python reformat-prix-carburants.py "~/projects/"$mydate".xml"
 
             git config --global user.email "robot@circleci.com"
             git config --global user.name "CircleCI"
