@@ -36,7 +36,7 @@ jobs:
             export mydate=${filename:0-12}
             export mydate=${mydate:0:8}
             echo $mydate
-            unzip $filename
+            7z x $filename
             tmp=(*.xml)
             echo $tmp
             export filename=${tmp[0]}
@@ -45,7 +45,7 @@ jobs:
             ls
             rm -rf $filename
             python reformat-prix-carburants.py $mydate".xml"
-            
+
             git config --global user.email "robot@circleci.com"
             git config --global user.name "CircleCI"
             git clone https://github.com/geoffreyaldebert/prix-carburants-data.git
