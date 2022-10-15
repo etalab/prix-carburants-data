@@ -38,6 +38,7 @@ jobs:
             echo $mydate
             unzip $filename
             tmp=(~/project/*.xml)
+            echo $tmp
             export filename=${tmp[0]}
             ls
             iconv -f iso-8859-1 -t utf-8 $filename >| "~/projects/"$mydate".xml"
