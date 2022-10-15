@@ -31,26 +31,20 @@ jobs:
             . venv/bin/activate
             wget -P ~/project --content-disposition https://donnees.roulez-eco.fr/opendata/jour
             tmp=(*.zip)
-            echo $tmp
             export filename=${tmp[0]}
-            echo $filename
             export mydate=${filename:0-12}
             export mydate=${mydate:0:8}
-            echo $mydate
             7z x $filename
             tmp=(*.xml)
-            echo $tmp
             export filename=${tmp[0]}
-            ls
             iconv -f iso-8859-1 -t utf-8 $filename >| $mydate".xml"
-            ls
             rm -rf $filename
             python reformat-prix-carburants.py $mydate".xml"
+            python generate_kpis_and_files.py
 
             git config --global user.email "robot@circleci.com"
             git config --global user.name "CircleCI"
             git clone https://github.com/geoffreyaldebert/prix-carburants-data.git
-            python generate_kpis_and_files.py
             rm -rf latest.geojson            
             
             mkdir $mydate

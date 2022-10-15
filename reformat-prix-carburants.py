@@ -9,14 +9,7 @@ from datetime import datetime, timedelta
 from itertools import groupby, chain
 from shapely.geometry import Point, shape
 import argparse
-try:
-    from lxml import etree
-except ImportError:
-    try:
-        print("Failed to import etree from lxml. Fall to default Python lib")
-        from xml.etree import ElementTree as etree
-    except ImportError:
-        print("Failed to import etree from native Python")
+from xml.etree import ElementTree as etree
 
 # Todo: loop on each xml file
 # local_path = 'PrixCarburants_annuel_2022.xml'
