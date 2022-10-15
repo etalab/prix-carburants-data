@@ -27,6 +27,7 @@ jobs:
       - run:
           name: Fetch datasets and generate data
           command: |
+            apt-install p7zip-full
             . venv/bin/activate
             wget -P ~/project --content-disposition https://donnees.roulez-eco.fr/opendata/jour
             tmp=(*.zip)
