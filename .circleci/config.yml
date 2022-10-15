@@ -33,7 +33,8 @@ jobs:
             echo $tmp
             export filename=${tmp[0]}
             echo $filename
-            export mydate=${${filename:0-12}:0:8}
+            export mydate=${filename:0-12}
+            export mydate=${mydate:0:8}
             echo $mydate
             unzip $filename
             rm -rf ${tmp[0]}            
