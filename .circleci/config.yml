@@ -32,7 +32,8 @@ jobs:
             tmp=(*.zip)
             filename=${tmp[1]}
             mydate=${filename:25:-4}
-            unzip -r $filename
+            echo "unzip -j "$filename
+            unzip -j $filename
             rm ${tmp[1]}            
             tmp=(*.xml)
             filename=${tmp[1]}
