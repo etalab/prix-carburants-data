@@ -36,11 +36,11 @@ jobs:
             export mydate=${filename:0-12}
             export mydate=${mydate:0:8}
             echo $mydate
-            unzip $filename
-            rm -rf ${tmp[0]}            
-            tmp=(*.xml)
-            export filename=${tmp[1]}
+            unzip $filename           
+            tmp=(~/project/*.xml)
+            export filename=${tmp[0]}
             iconv -f iso-8859-1 -t utf-8 $filename >| ~/projects/$mydate".xml"
+            ls
             rm -rf ~/projects/$filename
             
             python reformat-prix-carburants.py ~/projects/$mydate".xml"
