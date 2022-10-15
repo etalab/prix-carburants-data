@@ -30,13 +30,13 @@ jobs:
             . venv/bin/activate
             wget -P ~/project --content-disposition https://donnees.roulez-eco.fr/opendata/jour
             tmp=(*.zip)
-            filename=${tmp[1]}
-            mydate=${filename:25:-4}
+            export filename=${tmp[1]}
+            export mydate=${filename:25:-4}
             echo "unzip "$filename
             unzip $filename
             rm ${tmp[1]}            
             tmp=(*.xml)
-            filename=${tmp[1]}
+            export filename=${tmp[1]}
             iconv -f iso-8859-1 -t utf-8 $filename >| $mydate".xml"
             rm $filename
             python reformat-prix-carburants.py $mydate".xml"
