@@ -31,8 +31,9 @@ jobs:
             wget -P ~/project --content-disposition https://donnees.roulez-eco.fr/opendata/jour
             tmp=(~/project/*.zip)
             echo $tmp
-            export filename=${tmp[1]}
+            export filename=${tmp[0]}
             echo $filename
+            echo "toto"
             export mydate=${${str:0-12}:0:8}
             echo $mydate
             unzip $filename
