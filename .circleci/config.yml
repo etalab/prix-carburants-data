@@ -34,18 +34,19 @@ jobs:
             export mydate=${filename:25:-4}
             echo "unzip "$filename
             unzip $filename
-            rm ${tmp[1]}            
+            ls
+            rm -rf ${tmp[1]}            
             tmp=(*.xml)
             export filename=${tmp[1]}
             iconv -f iso-8859-1 -t utf-8 $filename >| $mydate".xml"
-            rm $filename
+            rm -rf $filename
             python reformat-prix-carburants.py $mydate".xml"
 
             git config --global user.email "robot@circleci.com"
             git config --global user.name "CircleCI"
             git clone https://github.com/geoffreyaldebert/prix-carburants-data.git
             python generate_kpis_and_files.py
-            rm latest.geojson            
+            rm -rf latest.geojson            
             
             mkdir $mydate
             cp -r Gazole_* $mydate/
