@@ -52,13 +52,11 @@ jobs:
             cp -r SP95_* $mydate/
             cp -r SP98_* $mydate/
             
-            l
-
             mv *.json ~/project/prix-carburants-data/dist/
             mv mydate ~/project/prix-carburants-data/dist/
 
             cd ~/project/prix-carburants-data/
-            
+
             if [ -n "$(git status --porcelain)" ]; then
               git add dist
               git commit -am "New data at $(date -u +'%Y-%m-%dT%H:%M:%SZ') [skip ci]"
