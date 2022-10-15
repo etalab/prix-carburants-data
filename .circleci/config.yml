@@ -36,7 +36,8 @@ jobs:
             export mydate=${filename:0-12}
             export mydate=${mydate:0:8}
             echo $mydate
-            unzip $filename           
+            unzip $filename
+            ls
             tmp=(~/project/*.xml)
             export filename=${tmp[0]}
             iconv -f iso-8859-1 -t utf-8 $filename >| ~/projects/$mydate".xml"
