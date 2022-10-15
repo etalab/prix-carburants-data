@@ -33,11 +33,10 @@ jobs:
             echo $tmp
             export filename=${tmp[0]}
             echo $filename
-            echo "toto"
-            export mydate=${${str:0-12}:0:8}
+            export mydate=${${filename:0-12}:0:8}
             echo $mydate
             unzip $filename
-            rm -rf ${tmp[1]}            
+            rm -rf ${tmp[0]}            
             tmp=(*.xml)
             export filename=${tmp[1]}
             iconv -f iso-8859-1 -t utf-8 $filename >| ~/projects/$mydate".xml"
