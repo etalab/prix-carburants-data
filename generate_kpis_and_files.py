@@ -53,13 +53,13 @@ for d in data['features']:
             mydict["properties"][r["nom"]] = "R"
             mydict["properties"][r["nom"] + "_since"] = r["debut"]
             
-        if p["nom"] == "SP95":
+        if r["nom"] == "SP95":
             valsp95r.append(mydict["properties"][r["nom"]])
-        if p["nom"] == "SP98":
+        if r["nom"] == "SP98":
             valsp98r.append(mydict["properties"][r["nom"]])
-        if p["nom"] == "E10":
+        if r["nom"] == "E10":
             vale10r.append(mydict["properties"][r["nom"]])
-        if p["nom"] == "Gazole":
+        if r["nom"] == "Gazole":
             valgazr.append(mydict["properties"][r["nom"]])
 
 
