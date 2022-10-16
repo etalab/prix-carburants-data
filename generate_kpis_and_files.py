@@ -83,8 +83,8 @@ obj["properties"]["SP98"] = [
     round(np.quantile(valsp98, .66666),2),
     np.max(valsp98)
 ]
-obj["properties"]["SP95_mean"] = np.mean(valsp98)
-obj["properties"]["SP95_median"] = np.median(valsp98)
+obj["properties"]["SP98_mean"] = np.mean(valsp98)
+obj["properties"]["SP98_median"] = np.median(valsp98)
 
 obj["properties"]["E10"] = [
     np.min(vale10),
@@ -92,8 +92,8 @@ obj["properties"]["E10"] = [
     round(np.quantile(vale10, .66666),2),
     np.max(vale10)
 ]
-obj["properties"]["SP95_mean"] = np.mean(vale10)
-obj["properties"]["SP95_median"] = np.median(vale10)
+obj["properties"]["E10_mean"] = np.mean(vale10)
+obj["properties"]["E10_median"] = np.median(vale10)
 
 obj["properties"]["Gazole"] = [
     np.min(valgaz),
@@ -101,8 +101,8 @@ obj["properties"]["Gazole"] = [
     round(np.quantile(valgaz, .66666),2),
     np.max(valgaz)
 ]
-obj["properties"]["SP95_mean"] = np.mean(valgaz)
-obj["properties"]["SP95_median"] = np.median(valgaz)
+obj["properties"]["Gazole_mean"] = np.mean(valgaz)
+obj["properties"]["Gazole_median"] = np.median(valgaz)
 
 obj["properties"]["maj"] = max(dates)
 
