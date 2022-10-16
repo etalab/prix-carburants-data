@@ -24,6 +24,12 @@ valsp98 = []
 valsp95 = []
 vale10 = []
 valgaz = []
+
+valsp98r = []
+valsp95r = []
+vale10r = []
+valgazr = []
+
 dates = []
 
 obj = {}
@@ -46,8 +52,17 @@ for d in data['features']:
         if r["debut"] > "2022-09-15":
             mydict["properties"][r["nom"]] = "R"
             mydict["properties"][r["nom"] + "_since"] = r["debut"]
-        #else:
-        #    mydict["properties"][r["nom"]] = "N"
+            
+        if p["nom"] == "SP95":
+            valsp95r.append(mydict["properties"][r["nom"]])
+        if p["nom"] == "SP98":
+            valsp98r.append(mydict["properties"][r["nom"]])
+        if p["nom"] == "E10":
+            vale10r.append(mydict["properties"][r["nom"]])
+        if p["nom"] == "Gazole":
+            valgazr.append(mydict["properties"][r["nom"]])
+
+
     for p in d["properties"]["prix"]:
         dates.append(p["maj"])
         mydict["properties"][p["nom"]] = p["valeur"]
@@ -76,6 +91,8 @@ obj["properties"]["SP95"] = [
 ]
 obj["properties"]["SP95_mean"] = np.mean(valsp95)
 obj["properties"]["SP95_median"] = np.median(valsp95)
+obj["properties"]["SP95_rupture"] = round((len(valsp95r) / (len(valsp95r) + len(valsp95)))*100,2)
+
 
 obj["properties"]["SP98"] = [
     np.min(valsp98),
@@ -85,6 +102,7 @@ obj["properties"]["SP98"] = [
 ]
 obj["properties"]["SP98_mean"] = np.mean(valsp98)
 obj["properties"]["SP98_median"] = np.median(valsp98)
+obj["properties"]["SP98_rupture"] = round((len(valsp98r) / (len(valsp98r) + len(valsp98)))*100,2)
 
 obj["properties"]["E10"] = [
     np.min(vale10),
@@ -94,6 +112,7 @@ obj["properties"]["E10"] = [
 ]
 obj["properties"]["E10_mean"] = np.mean(vale10)
 obj["properties"]["E10_median"] = np.median(vale10)
+obj["properties"]["E10_rupture"] = round((len(vale10r) / (len(vale10r) + len(vale10)))*100,2)
 
 obj["properties"]["Gazole"] = [
     np.min(valgaz),
@@ -103,6 +122,7 @@ obj["properties"]["Gazole"] = [
 ]
 obj["properties"]["Gazole_mean"] = np.mean(valgaz)
 obj["properties"]["Gazole_median"] = np.median(valgaz)
+obj["properties"]["Gazole_rupture"] = round((len(valgazr) / (len(valgazr) + len(valgaz)))*100,2)
 
 obj["properties"]["maj"] = max(dates)
 
