@@ -1,8 +1,11 @@
 import json
 import pandas as pd
+import numpy as np
 
 with open('latest.geojson') as fp:
     data = json.load(fp)
+
+list_fuels = ["Gazole", "SP95", "SP98", "E10"]
 
 def parseCP(val):
     if val[:2] == "97":
@@ -16,88 +19,107 @@ def parseCP(val):
     else:
         return val[:2]
 
-def process_geojson(fuel, type_file, arr):
-    obj = {}
-    obj["type"] = "FeatureCollection"
-    obj["features"] = []
-    for d in data['features']:
-        mydict = {}
-        mydict["type"] = "Feature"
-        mydict["properties"] = {}
-        for rupt in d["properties"]["ruptures"]:
-            if type_file == "ruptures":
-                if rupt["nom"] == fuel and rupt["debut"] > "2022-09-15":
-                    mydict["properties"] = {
-                        "id": d["properties"]["id"],
-                        "dep": parseCP(d["properties"]["cp"]),
-                        "debut": rupt["debut"]
-                    }
-                    mydict["geometry"] = d["geometry"]
-                    obj["features"].append(mydict)
-                    
-                    mydict = {}
-                    mydict["dep"] = parseCP(d["properties"]["cp"])
-                    mydict["fuel"] = fuel
-                    mydict["type"] = "rupture"
-                    arr.append(mydict)
-        for prix in d["properties"]["prix"]:
-            if type_file == "prix":
-                if prix["nom"] == fuel:
-                    mydict["properties"] = {
-                        "id": d["properties"]["id"],
-                        "dep": parseCP(d["properties"]["cp"]),
-                        "maj": prix["maj"],
-                        "val": prix["valeur"]
-                    }
-                    mydict["geometry"] = d["geometry"]
-                    obj["features"].append(mydict)
-                    mydict = {}
-                    mydict["dep"] = parseCP(d["properties"]["cp"])
-                    mydict["fuel"] = fuel
-                    mydict["type"] = "prix"
-                    mydict["prix"] = prix["valeur"]
-                    arr.append(mydict)
-    return obj, arr
-                
-arr = []
-for fuel in ["SP95", "SP98", "Gazole"]:
-    for type_file in ["ruptures", "prix"]:
-        toDump, arr = process_geojson(fuel, type_file, arr)
-        with open(fuel + "_" + type_file + ".json", "w") as fp:
-            json.dump(toDump, fp)
 
-df = pd.DataFrame(arr)
-df = df[df["dep"] != "99"]
-df["count"] = 1
+valsp98 = []
+valsp95 = []
+vale10 = []
+valgaz = []
+dates = []
 
-agg = df.groupby(["dep", "fuel", "type"], as_index=False).count()
-agg[(agg["fuel"] == "SP95") & (agg["type"] == "rupture")]
+obj = {}
+obj["type"] = "FeatureCollection"
+obj["features"] = []
+for d in data['features']:
+    mydict = {}
+    mydict["type"] = "Feature"
+    mydict["properties"] = {}
+    mydict["properties"]["id"] = d["properties"]["id"]
+    mydict["properties"]["adr"] = (
+        d["properties"]["adresse"].encode('Latin-1', 'ignore').decode('utf-8').lower()
+    )
+    mydict["properties"]["cpl_adr"] = (
+        d["properties"]["cp"].encode('Latin-1', 'ignore').decode('utf-8').lower()
+        + " " + d["properties"]["ville"].encode('Latin-1', 'ignore').decode('utf-8').lower()
+    )
+    mydict["properties"]["dep"] = parseCP(d["properties"]["cp"])
+    for r in d["properties"]["ruptures"]:
+        if r["debut"] > "2022-09-15":
+            mydict["properties"][r["nom"]] = "R"
+            mydict["properties"][r["nom"] + "_since"] = r["debut"]
+        #else:
+        #    mydict["properties"][r["nom"]] = "N"
+    for p in d["properties"]["prix"]:
+        dates.append(p["maj"])
+        mydict["properties"][p["nom"]] = p["valeur"]
+        mydict["properties"][p["nom"] + "_maj"] = p["maj"]
+        
+        if p["nom"] == "SP95":
+            valsp95.append(float(p["valeur"]))
+        if p["nom"] == "SP98":
+            valsp98.append(float(p["valeur"]))
+        if p["nom"] == "E10":
+            vale10.append(float(p["valeur"]))
+        if p["nom"] == "Gazole":
+            valgaz.append(float(p["valeur"]))
 
-for fuel in ["Gazole", "SP95", "SP98"]:
-    for dep in df.dep.unique():
-        if agg[(agg["dep"] == dep) & (agg["type"] == "rupture") & (agg["fuel"] == fuel)].shape[0] == 0:
-            print(dep, fuel)
-            agg = agg.append({'dep':dep, 'fuel':fuel, 'type':'rupture', 'count': 0}, ignore_index=True)
+            
+    mydict["geometry"] = d["geometry"]
+    obj["features"].append(mydict)
+            
+    
+obj["properties"] = {}
+obj["properties"]["SP95"] = [
+    np.min(valsp95),
+    round(np.quantile(valsp95, .333333),2),
+    round(np.quantile(valsp95, .66666),2),
+    np.max(valsp95)
+]
+obj["properties"]["SP98"] = [
+    np.min(valsp98),
+    round(np.quantile(valsp98, .333333),2),
+    round(np.quantile(valsp98, .66666),2),
+    np.max(valsp98)
+]
+obj["properties"]["E10"] = [
+    np.min(vale10),
+    round(np.quantile(vale10, .333333),2),
+    round(np.quantile(vale10, .66666),2),
+    np.max(vale10)
+]
+obj["properties"]["Gazole"] = [
+    np.min(valgaz),
+    round(np.quantile(valgaz, .333333),2),
+    round(np.quantile(valgaz, .66666),2),
+    np.max(valgaz)
+]
+obj["properties"]["maj"] = max(dates)
 
-def get_pourcentage(row, df):
-    return round(row["count"] / df[(df["fuel"] == row["fuel"]) & (df["dep"] == row["dep"])]["count"].sum() * 100, 2)
+def getColor(val, fuel):
+    if fuel == "SP95":
+        arr = obj["properties"]["SP95"]
+    if fuel == "SP98":
+        arr = obj["properties"]["SP98"]
+    if fuel == "E10":
+        arr = obj["properties"]["E10"]
+    if fuel == "Gazole":
+        arr = obj["properties"]["Gazole"]
+    if val < arr[1]:
+        return "1"
+    if val < arr[2]:
+        return "2"
+    if val >= arr[2]:
+        return "3"
 
-agg["valeur"] = agg.apply(lambda row: get_pourcentage(row, df), axis=1)
+for d in obj["features"]:
+    for fuel in ["SP95", "Gazole", "E10", "SP98"]:
+        if fuel in d["properties"]:
+            if d["properties"][fuel] == "R":
+                d["properties"][fuel + "_color"] = "0"
+            else:
+                d["properties"][fuel + "_color"] = getColor(float(d["properties"][fuel]), fuel)
 
-for fuel in ["Gazole", "SP95", "SP98"]:
-    res = agg[(agg["fuel"] == fuel) & (agg["type"] == "rupture")][["dep", "valeur"]]
-    res = res[res["valeur"].notna()]
-    with open(fuel + "_ruptures_synthese_dep.json", "w") as fp:
-        json.dump(res.to_dict(orient="records"), fp)
 
+with open("synthese_france.json", "w") as fp:
+    json.dump(obj, fp)
 
-df["prix"] = df["prix"].astype(float)
-
-agg = df[["dep", "fuel", "prix"]][df["type"] == "prix"].groupby(["dep", "fuel"], as_index=False).median()
-
-agg = agg.rename(columns={"prix": "valeur"})
-
-for fuel in ["Gazole", "SP95", "SP98"]:
-    res = agg[(agg["fuel"] == fuel)][["dep", "valeur"]]
-    with open(fuel + "_prix_mediane_dep.json", "w") as fp:
-        json.dump(res.to_dict(orient="records"), fp)
+    

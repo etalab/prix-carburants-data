@@ -48,13 +48,8 @@ jobs:
             rm -rf latest.geojson            
             
             mkdir $mydate
-            cp -r Gazole_* $mydate/
-            cp -r SP95_* $mydate/
-            cp -r SP98_* $mydate/
-            
-            mv *.json ~/project/prix-carburants-data/dist/
-            mv $mydate ~/project/prix-carburants-data/dist/
-
+            cp -r synthese_france.json ~/project/prix-carburants-data/dist/historique/$mydate.json
+            cp -r synthese_france.json ~/project/prix-carburants-data/dist/synthese_france.json
             cd ~/project/prix-carburants-data/
 
             if [ -n "$(git status --porcelain)" ]; then
