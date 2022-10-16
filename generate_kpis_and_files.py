@@ -74,24 +74,36 @@ obj["properties"]["SP95"] = [
     round(np.quantile(valsp95, .66666),2),
     np.max(valsp95)
 ]
+obj["properties"]["SP95_mean"] = np.mean(valsp95)
+obj["properties"]["SP95_median"] = np.median(valsp95)
+
 obj["properties"]["SP98"] = [
     np.min(valsp98),
     round(np.quantile(valsp98, .333333),2),
     round(np.quantile(valsp98, .66666),2),
     np.max(valsp98)
 ]
+obj["properties"]["SP95_mean"] = np.mean(valsp98)
+obj["properties"]["SP95_median"] = np.median(valsp98)
+
 obj["properties"]["E10"] = [
     np.min(vale10),
     round(np.quantile(vale10, .333333),2),
     round(np.quantile(vale10, .66666),2),
     np.max(vale10)
 ]
+obj["properties"]["SP95_mean"] = np.mean(vale10)
+obj["properties"]["SP95_median"] = np.median(vale10)
+
 obj["properties"]["Gazole"] = [
     np.min(valgaz),
     round(np.quantile(valgaz, .333333),2),
     round(np.quantile(valgaz, .66666),2),
     np.max(valgaz)
 ]
+obj["properties"]["SP95_mean"] = np.mean(valgaz)
+obj["properties"]["SP95_median"] = np.median(valgaz)
+
 obj["properties"]["maj"] = max(dates)
 
 def getColor(val, fuel):
@@ -122,4 +134,3 @@ for d in obj["features"]:
 with open("synthese_france.json", "w") as fp:
     json.dump(obj, fp)
 
-    
