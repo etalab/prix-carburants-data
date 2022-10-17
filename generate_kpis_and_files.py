@@ -41,11 +41,11 @@ for d in data['features']:
     mydict["properties"] = {}
     mydict["properties"]["id"] = d["properties"]["id"]
     mydict["properties"]["adr"] = (
-        d["properties"]["adresse"].encode('Latin-1', 'ignore').decode('utf-8').lower()
+        d["properties"]["adresse"].encode('Latin-1', 'ignore').decode('utf-8', 'ignore').lower()
     )
     mydict["properties"]["cpl_adr"] = (
-        d["properties"]["cp"].encode('Latin-1', 'ignore').decode('utf-8').lower()
-        + " " + d["properties"]["ville"].encode('Latin-1', 'ignore').decode('utf-8').lower()
+        d["properties"]["cp"].encode('Latin-1', 'ignore').decode('utf-8', 'ignore').lower()
+        + " " + d["properties"]["ville"].encode('Latin-1', 'ignore').decode('utf-8', 'ignore').lower()
     )
     mydict["properties"]["dep"] = parseCP(d["properties"]["cp"])
     for r in d["properties"]["ruptures"]:
@@ -154,3 +154,26 @@ for d in obj["features"]:
 with open("synthese_france.json", "w") as fp:
     json.dump(obj, fp)
 
+with open("dist/prix_2022.json", 'r') as fp:
+    data = json.load(fp)
+
+toSave = True
+for d in data:
+    if d["date"] == obj["properties"]["maj"][:10]:
+        toSave = False
+
+if toSave:
+    mydict = {}
+    mydict["date"] = obj["properties"]["maj"][:10]
+    mydict["SP95_mean"] = obj["properties"]["SP95_mean"]
+    mydict["SP95_median"] = obj["properties"]["SP95_median"]
+    mydict["E10_mean"] = obj["properties"]["E10_mean"]
+    mydict["E10_median"] = obj["properties"]["E10_median"]
+    mydict["SP98_mean"] = obj["properties"]["SP98_mean"]
+    mydict["SP98_median"] = obj["properties"]["SP98_median"]
+    mydict["Gazole_mean"] = obj["properties"]["Gazole_mean"]
+    mydict["Gazole_median"] = obj["properties"]["Gazole_median"]
+    data.append(mydict)
+
+    with open("dist/prix_2022.json", 'w') as fp:
+        json.dump(data, fp)
