@@ -80,7 +80,9 @@ for d in data['features']:
             
     mydict["geometry"] = d["geometry"]
     obj["features"].append(mydict)
-            
+
+    
+
     
 obj["properties"] = {}
 obj["properties"]["SP95"] = [
@@ -91,7 +93,6 @@ obj["properties"]["SP95"] = [
 ]
 obj["properties"]["SP95_mean"] = np.mean(valsp95)
 obj["properties"]["SP95_median"] = np.median(valsp95)
-obj["properties"]["SP95_rupture"] = round((len(valsp95r) / (len(valsp95r) + len(valsp95)))*100,2)
 
 
 obj["properties"]["SP98"] = [
@@ -102,7 +103,6 @@ obj["properties"]["SP98"] = [
 ]
 obj["properties"]["SP98_mean"] = np.mean(valsp98)
 obj["properties"]["SP98_median"] = np.median(valsp98)
-obj["properties"]["SP98_rupture"] = round((len(valsp98r) / (len(valsp98r) + len(valsp98)))*100,2)
 
 obj["properties"]["E10"] = [
     np.min(vale10),
@@ -112,7 +112,6 @@ obj["properties"]["E10"] = [
 ]
 obj["properties"]["E10_mean"] = np.mean(vale10)
 obj["properties"]["E10_median"] = np.median(vale10)
-obj["properties"]["E10_rupture"] = round((len(vale10r) / (len(vale10r) + len(vale10)))*100,2)
 
 obj["properties"]["Gazole"] = [
     np.min(valgaz),
@@ -122,9 +121,22 @@ obj["properties"]["Gazole"] = [
 ]
 obj["properties"]["Gazole_mean"] = np.mean(valgaz)
 obj["properties"]["Gazole_median"] = np.median(valgaz)
-obj["properties"]["Gazole_rupture"] = round((len(valgazr) / (len(valgazr) + len(valgaz)))*100,2)
 
 obj["properties"]["maj"] = max(dates)
+
+
+for fuel in list_fuels:
+    open = 0
+    close = 0
+    for d in data["features"]:
+        for p in d["properties"]["prix"]:
+            if(p["nom"] == fuel):
+                open = open + 1
+        for r in d["properties"]["ruptures"]:
+            if(r["debut"] > "2022-09-15"):
+                if(r["nom"] == fuel):
+                    close = close + 1
+    obj["properties"][fuel + "_rupture"] = round((close / (close + open) * 100), 2)
 
 def getColor(val, fuel):
     if fuel == "SP95":
