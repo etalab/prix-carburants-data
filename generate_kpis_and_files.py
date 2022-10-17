@@ -124,19 +124,18 @@ obj["properties"]["Gazole_median"] = np.median(valgaz)
 
 obj["properties"]["maj"] = max(dates)
 
-
 for fuel in list_fuels:
-    open = 0
-    close = 0
+    openStations = 0
+    closeStations = 0
     for d in data["features"]:
         for p in d["properties"]["prix"]:
             if(p["nom"] == fuel):
-                open = open + 1
+                openStations = openStations + 1
         for r in d["properties"]["ruptures"]:
             if(r["debut"] > "2022-09-15"):
                 if(r["nom"] == fuel):
-                    close = close + 1
-    obj["properties"][fuel + "_rupture"] = round((close / (close + open) * 100), 2)
+                    closeStations = closeStations + 1
+    obj["properties"][fuel + "_rupture"] = round((closeStations / (closeStations + openStations) * 100), 2)
 
 def getColor(val, fuel):
     if fuel == "SP95":
