@@ -40,6 +40,23 @@ jobs:
             iconv -f iso-8859-1 -t utf-8 $filename >| $mydate".xml"
             rm -rf $filename
             python reformat-prix-carburants.py $mydate".xml"
+            rm -rf *.zip
+            rm -rf *.xml
+            mv latest.geojson quotidien.geojson
+
+            wget -P ~/project --content-disposition https://donnees.roulez-eco.fr/opendata/instantane
+            tmp=(*.zip)
+            export filename=${tmp[0]}
+            export mydate=${filename:0-12}
+            export mydate=${mydate:0:8}
+            7z x $filename
+            tmp=(*.xml)
+            export filename=${tmp[0]}
+            iconv -f iso-8859-1 -t utf-8 $filename >| $mydate".xml"
+            rm -rf $filename
+            python reformat-prix-carburants.py $mydate".xml"
+            rm -rf *.zip
+            rm -rf *.xml
             python generate_kpis_and_files.py
 
             git config --global user.email "robot@circleci.com"
@@ -48,8 +65,8 @@ jobs:
             rm -rf latest.geojson            
             
             mkdir $mydate
-            cp -r synthese_france.json ~/project/prix-carburants-data/dist/historique/$mydate.json
-            cp -r synthese_france.json ~/project/prix-carburants-data/dist/synthese_france.json
+            cp -r latest_france.json ~/project/prix-carburants-data/dist/historique/$mydate.json
+            cp -r latest_france.json ~/project/prix-carburants-data/dist/latest_france.json
             cd ~/project/prix-carburants-data/
 
             if [ -n "$(git status --porcelain)" ]; then

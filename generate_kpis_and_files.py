@@ -2,10 +2,8 @@ import json
 import pandas as pd
 import numpy as np
 
-with open('latest.geojson') as fp:
+with open('quotidien.geojson') as fp:
     data = json.load(fp)
-
-list_fuels = ["Gazole", "SP95", "SP98", "E10"]
 
 def parseCP(val):
     if val[:2] == "97":
@@ -19,18 +17,7 @@ def parseCP(val):
     else:
         return val[:2]
 
-
-valsp98 = []
-valsp95 = []
-vale10 = []
-valgaz = []
-
-valsp98r = []
-valsp95r = []
-vale10r = []
-valgazr = []
-
-dates = []
+list_fuels = ["SP95", "E10", "SP98", "Gazole", "GPLc", "E85"]
 
 obj = {}
 obj["type"] = "FeatureCollection"
@@ -51,101 +38,112 @@ for d in data['features']:
     for r in d["properties"]["ruptures"]:
         if r["debut"] > "2022-09-15":
             mydict["properties"][r["nom"]] = "R"
-            mydict["properties"][r["nom"] + "_since"] = r["debut"]
+        else:
+            mydict["properties"][r["nom"]] = "N"
             
-        if r["nom"] == "SP95":
-            valsp95r.append(1)
-        if r["nom"] == "SP98":
-            valsp98r.append(1)
-        if r["nom"] == "E10":
-            vale10r.append(1)
-        if r["nom"] == "Gazole":
-            valgazr.append(1)
-
+        mydict["properties"][r["nom"] + "_s"] = r["debut"]
+        mydict["properties"][p["nom"] + "_m"] = None
 
     for p in d["properties"]["prix"]:
-        dates.append(p["maj"])
         mydict["properties"][p["nom"]] = p["valeur"]
-        mydict["properties"][p["nom"] + "_maj"] = p["maj"]
-        
-        if p["nom"] == "SP95":
-            valsp95.append(float(p["valeur"]))
-        if p["nom"] == "SP98":
-            valsp98.append(float(p["valeur"]))
-        if p["nom"] == "E10":
-            vale10.append(float(p["valeur"]))
-        if p["nom"] == "Gazole":
-            valgaz.append(float(p["valeur"]))
+        mydict["properties"][p["nom"] + "_s"] = None
+        mydict["properties"][p["nom"] + "_m"] = p["maj"]
+    
+    for fuel in list_fuels:
+        if fuel not in mydict["properties"]:
+            mydict["properties"][fuel] = "N"
+            mydict["properties"][fuel + "_s"] = None
+            mydict["properties"][fuel + "_m"] = None
 
-            
     mydict["geometry"] = d["geometry"]
     obj["features"].append(mydict)
 
-    
+arr = []
+geometries = {}
+for d in obj["features"]:
+    mydict = d["properties"]
+    arr.append(mydict)
 
-    
-obj["properties"] = {}
-obj["properties"]["SP95"] = [
-    np.min(valsp95),
-    round(np.quantile(valsp95, .333333),2),
-    round(np.quantile(valsp95, .66666),2),
-    np.max(valsp95)
-]
-obj["properties"]["SP95_mean"] = np.mean(valsp95)
-obj["properties"]["SP95_median"] = np.median(valsp95)
+df = pd.DataFrame(arr)
 
+df = df.where(pd.notnull(df), None)
 
-obj["properties"]["SP98"] = [
-    np.min(valsp98),
-    round(np.quantile(valsp98, .333333),2),
-    round(np.quantile(valsp98, .66666),2),
-    np.max(valsp98)
-]
-obj["properties"]["SP98_mean"] = np.mean(valsp98)
-obj["properties"]["SP98_median"] = np.median(valsp98)
+with open("latest.geojson") as fp:
+    data = json.load(fp)
 
-obj["properties"]["E10"] = [
-    np.min(vale10),
-    round(np.quantile(vale10, .333333),2),
-    round(np.quantile(vale10, .66666),2),
-    np.max(vale10)
-]
-obj["properties"]["E10_mean"] = np.mean(vale10)
-obj["properties"]["E10_median"] = np.median(vale10)
+final = {}
+final["type"] = "FeatureCollection"
+final["features"] = []
+for d in data["features"]:
+    for p in d["properties"]["prix"]:
+        df.loc[df["id"] == d["properties"]["id"], p["nom"] + "_m"] = p["maj"]
+        df.loc[df["id"] == d["properties"]["id"], p["nom"]] = p["valeur"]
+    mydict = {}
+    mydict["type"] = "Feature"
+    dfinter = df[df["id"] == d["properties"]["id"]]
+    if dfinter.shape[0] > 0:
+        mydict["properties"] = dfinter.to_dict(orient="records")[0]
+    else:
+        mydict["properties"] = {}
+    mydict["geometrey"] = d["geometry"]
+    final["features"].append(mydict)
+        
+tab = {
+    "SP95": 0,
+    "SP95r": 0,
+    "SP95v": [],
+    "SP98": 0,
+    "SP98r": 0,
+    "SP98v": [],
+    "E10": 0,
+    "E10r": 0,
+    "E10v": [],
+    "Gazole": 0,
+    "Gazoler": 0,
+    "Gazolev": [],
+    "E85": 0,
+    "E85r": 0,
+    "E85v": [],
+    "GPLc": 0,
+    "GPLcr": 0,
+    "GPLcv": []
+}
 
-obj["properties"]["Gazole"] = [
-    np.min(valgaz),
-    round(np.quantile(valgaz, .333333),2),
-    round(np.quantile(valgaz, .66666),2),
-    np.max(valgaz)
-]
-obj["properties"]["Gazole_mean"] = np.mean(valgaz)
-obj["properties"]["Gazole_median"] = np.median(valgaz)
+for f in final["features"]:
+    for fuel in list_fuels:
+        if fuel in f["properties"]:
+            if f["properties"][fuel] not in ["R", "N"]:
+                tab[fuel] = tab[fuel] + 1
+                tab[fuel + "v"].append(float(f["properties"][fuel]))
+            elif f["properties"][fuel] == "R":
+                tab[fuel + "r"] = tab[fuel + "r"] + 1
 
-obj["properties"]["maj"] = max(dates)
-
+final["properties"] = {}
 for fuel in list_fuels:
-    openStations = 0
-    closeStations = 0
-    for d in data["features"]:
-        for p in d["properties"]["prix"]:
-            if(p["nom"] == fuel):
-                openStations = openStations + 1
-        for r in d["properties"]["ruptures"]:
-            if(r["debut"] > "2022-09-15"):
-                if(r["nom"] == fuel):
-                    closeStations = closeStations + 1
-    obj["properties"][fuel + "_rupture"] = round((closeStations / (closeStations + openStations) * 100), 2)
+    
+    final["properties"][fuel] = [
+        np.min(tab[fuel + "v"]),
+        round(np.quantile(tab[fuel + "v"], .333333),2),
+        round(np.quantile(tab[fuel + "v"], .66666),2),
+        np.max(tab[fuel + "v"])
+    ]
+    final["properties"][fuel + "_mean"] = np.mean(tab[fuel + "v"])
+    final["properties"][fuel + "_median"] = np.median(tab[fuel + "v"])
+    final["properties"][fuel + "_rupture"] = round((tab[fuel + "r"] / (tab[fuel + "r"] + tab[fuel]) * 100), 2)
 
 def getColor(val, fuel):
     if fuel == "SP95":
-        arr = obj["properties"]["SP95"]
+        arr = final["properties"]["SP95"]
     if fuel == "SP98":
-        arr = obj["properties"]["SP98"]
+        arr = final["properties"]["SP98"]
     if fuel == "E10":
-        arr = obj["properties"]["E10"]
+        arr = final["properties"]["E10"]
     if fuel == "Gazole":
-        arr = obj["properties"]["Gazole"]
+        arr = final["properties"]["Gazole"]
+    if fuel == "GPLc":
+        arr = final["properties"]["Gazole"]
+    if fuel == "E85":
+        arr = final["properties"]["Gazole"]
     if val < arr[1]:
         return "1"
     if val < arr[2]:
@@ -153,38 +151,15 @@ def getColor(val, fuel):
     if val >= arr[2]:
         return "3"
 
-for d in obj["features"]:
-    for fuel in ["SP95", "Gazole", "E10", "SP98"]:
+for d in final["features"]:
+    for fuel in list_fuels:
         if fuel in d["properties"]:
             if d["properties"][fuel] == "R":
                 d["properties"][fuel + "_color"] = "0"
+            elif d["properties"][fuel] == "N":
+                d["properties"][fuel + "_color"] = "-1"
             else:
                 d["properties"][fuel + "_color"] = getColor(float(d["properties"][fuel]), fuel)
 
-
-with open("synthese_france.json", "w") as fp:
-    json.dump(obj, fp)
-
-with open("dist/prix_2022.json", 'r') as fp:
-    data = json.load(fp)
-
-toSave = True
-for d in data:
-    if d["date"] == obj["properties"]["maj"][:10]:
-        toSave = False
-
-if toSave:
-    mydict = {}
-    mydict["date"] = obj["properties"]["maj"][:10]
-    mydict["SP95_mean"] = obj["properties"]["SP95_mean"]
-    mydict["SP95_median"] = obj["properties"]["SP95_median"]
-    mydict["E10_mean"] = obj["properties"]["E10_mean"]
-    mydict["E10_median"] = obj["properties"]["E10_median"]
-    mydict["SP98_mean"] = obj["properties"]["SP98_mean"]
-    mydict["SP98_median"] = obj["properties"]["SP98_median"]
-    mydict["Gazole_mean"] = obj["properties"]["Gazole_mean"]
-    mydict["Gazole_median"] = obj["properties"]["Gazole_median"]
-    data.append(mydict)
-
-    with open("dist/prix_2022.json", 'w') as fp:
-        json.dump(data, fp)
+with open("latest_france.geojson", "w") as fp:
+    json.dump(final, fp)
