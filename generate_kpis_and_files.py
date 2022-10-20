@@ -161,5 +161,5 @@ for d in final["features"]:
             else:
                 d["properties"][fuel + "_color"] = getColor(float(d["properties"][fuel]), fuel)
 
-with open("latest_france.geojson", "w") as fp:
+with open("latest_france.json", "w") as fp:
     json.dump(final, fp)
