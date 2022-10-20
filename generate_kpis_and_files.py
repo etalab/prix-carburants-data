@@ -141,9 +141,9 @@ def getColor(val, fuel):
     if fuel == "Gazole":
         arr = final["properties"]["Gazole"]
     if fuel == "GPLc":
-        arr = final["properties"]["Gazole"]
+        arr = final["properties"]["GPLc"]
     if fuel == "E85":
-        arr = final["properties"]["Gazole"]
+        arr = final["properties"]["E85"]
     if val < arr[1]:
         return "1"
     if val < arr[2]:
