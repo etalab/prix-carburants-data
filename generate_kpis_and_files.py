@@ -85,7 +85,7 @@ for d in data["features"]:
         mydict["properties"] = dfinter.to_dict(orient="records")[0]
     else:
         mydict["properties"] = {}
-    mydict["geometrey"] = d["geometry"]
+    mydict["geometry"] = d["geometry"]
     final["features"].append(mydict)
         
 tab = {
