@@ -42,7 +42,7 @@ for d in data['features']:
             mydict["properties"][r["nom"]] = "N"
             
         mydict["properties"][r["nom"] + "_s"] = r["debut"]
-        mydict["properties"][p["nom"] + "_m"] = None
+        mydict["properties"][r["nom"] + "_m"] = None
 
     for p in d["properties"]["prix"]:
         mydict["properties"][p["nom"]] = p["valeur"]
