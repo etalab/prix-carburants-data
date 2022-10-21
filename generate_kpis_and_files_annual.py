@@ -42,11 +42,11 @@ for mydate in dates:
         )
         mydict["properties"]["dep"] = parseCP(d["properties"]["cp"])
         for r in d["properties"]["ruptures"]:
-            if mydate >= "2022-09-15" and r["debut"] > "2022-09-15" and r["debut"][:10] <= mydate:
+            if mydate >= "2022-09-15" and r["debut"] > "2022-09-15" and r["debut"][:10] <= mydate and (r["fin"] == "" or r["fin"][:10] >= mydate):
                 mydict["properties"][r["nom"]] = "R"
                 mydict["properties"][r["nom"] + "_s"] = r["debut"]
                 mydict["properties"][r["nom"] + "_m"] = None
-            elif mydate >= "2022-09-15" and r["debut"][:10] <= mydate:
+            elif mydate >= "2022-09-15" and r["debut"][:10] <= mydate and (r["fin"] == "" or r["fin"][:10] >= mydate):
                 mydict["properties"][r["nom"]] = "N"
                 mydict["properties"][r["nom"] + "_s"] = r["debut"]
                 mydict["properties"][r["nom"] + "_m"] = None
