@@ -47,8 +47,7 @@ jobs:
             wget -P ~/project --content-disposition https://donnees.roulez-eco.fr/opendata/instantane
             tmp=(*.zip)
             export filename=${tmp[0]}
-            export mydate=${filename:0-12}
-            export mydate=${mydate:0:8}
+            mydate=$(date +"%Y-%m-%d")
             7z x $filename
             tmp=(*.xml)
             export filename=${tmp[0]}
@@ -62,7 +61,8 @@ jobs:
             git config --global user.email "robot@circleci.com"
             git config --global user.name "CircleCI"
             git clone https://github.com/geoffreyaldebert/prix-carburants-data.git
-            rm -rf latest.geojson            
+            rm -rf latest.geojson
+            rm -rf quotidien.geojson
             
             mkdir $mydate
             cp -r latest_france.json ~/project/prix-carburants-data/dist/historique/$mydate.json

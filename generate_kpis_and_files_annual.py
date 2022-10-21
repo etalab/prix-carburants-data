@@ -1,19 +1,10 @@
 import json
 import pandas as pd
 import numpy as np
+from datetime import datetime
 
-with open('latest.geojson') as fp:
+with open('annual.geojson') as fp:
     data = json.load(fp)
-    
-listdates = []
-for d in data["features"]:
-    for p in d["properties"]["prix"]:
-        listdates.append(p["maj"][:10])
-
-listdates = (list(dict.fromkeys(listdates)))
-listdates.sort()
-
-list_fuels = ["Gazole", "SP95", "SP98", "E10", "GPLc", "E85"]
 
 def parseCP(val):
     if val[:2] == "97":
@@ -27,184 +18,131 @@ def parseCP(val):
     else:
         return val[:2]
 
-for mydate in listdates:
+list_fuels = ["SP95", "E10", "SP98", "Gazole", "GPLc", "E85"]
+
+
+dates = [x.strftime('%Y-%m-%d') for x in pd.date_range(start='15/9/2022', end='20/10/2022').tolist()]
+
+for mydate in dates:
     print(mydate)
-    if(mydate > "2022-10-15"):
-        valsp98 = []
-        valsp95 = []
-        vale10 = []
-        valgaz = []
-        valgplc = []
-        vale85 = []
+    obj = {}
+    obj["type"] = "FeatureCollection"
+    obj["features"] = []
+    for d in data['features']:
+        mydict = {}
+        mydict["type"] = "Feature"
+        mydict["properties"] = {}
+        mydict["properties"]["id"] = d["properties"]["id"]
+        mydict["properties"]["adr"] = (
+            d["properties"]["adresse"].encode('Latin-1', 'ignore').decode('utf-8', 'ignore').lower()
+        )
+        mydict["properties"]["cpl_adr"] = (
+            d["properties"]["cp"].encode('Latin-1', 'ignore').decode('utf-8', 'ignore').lower()
+            + " " + d["properties"]["ville"].encode('Latin-1', 'ignore').decode('utf-8', 'ignore').lower()
+        )
+        mydict["properties"]["dep"] = parseCP(d["properties"]["cp"])
+        for r in d["properties"]["ruptures"]:
+            if mydate >= "2022-09-15" and r["debut"] > "2022-09-15" and r["debut"][:10] <= mydate:
+                mydict["properties"][r["nom"]] = "R"
+                mydict["properties"][r["nom"] + "_s"] = r["debut"]
+                mydict["properties"][r["nom"] + "_m"] = None
+            elif mydate >= "2022-09-15" and r["debut"][:10] <= mydate:
+                mydict["properties"][r["nom"]] = "N"
+                mydict["properties"][r["nom"] + "_s"] = r["debut"]
+                mydict["properties"][r["nom"] + "_m"] = None
 
-        valsp98r = []
-        valsp95r = []
-        vale10r = []
-        valgazr = []
-        valgplcr = []
-        vale85r = []
+        for p in d["properties"]["prix"]:
+            if(mydate in p["maj"]):
+                mydict["properties"][p["nom"]] = p["valeur"]
+                mydict["properties"][p["nom"] + "_s"] = None
+                mydict["properties"][p["nom"] + "_m"] = p["maj"]
+        
+        for fuel in list_fuels:
+            if fuel not in mydict["properties"]:
+                mydict["properties"][fuel] = "N"
+                mydict["properties"][fuel + "_s"] = None
+                mydict["properties"][fuel + "_m"] = None
 
-        dates = []
+        mydict["geometry"] = d["geometry"]
+        obj["features"].append(mydict)
+    
+    final = obj
+   
+    tab = {
+        "SP95": 0,
+        "SP95r": 0,
+        "SP95v": [],
+        "SP98": 0,
+        "SP98r": 0,
+        "SP98v": [],
+        "E10": 0,
+        "E10r": 0,
+        "E10v": [],
+        "Gazole": 0,
+        "Gazoler": 0,
+        "Gazolev": [],
+        "E85": 0,
+        "E85r": 0,
+        "E85v": [],
+        "GPLc": 0,
+        "GPLcr": 0,
+        "GPLcv": []
+    }
 
-        obj = {}
-        obj["type"] = "FeatureCollection"
-        obj["features"] = []
-        for d in data['features']:
-            toPush = False
-            mydict = {}
-            mydict["type"] = "Feature"
-            mydict["properties"] = {}
-            mydict["properties"]["id"] = d["properties"]["id"]
-            mydict["properties"]["adr"] = (
-                d["properties"]["adresse"].encode('Latin-1', 'ignore').decode('utf-8', 'ignore').lower()
-            )
-            mydict["properties"]["cpl_adr"] = (
-                d["properties"]["cp"].encode('Latin-1', 'ignore').decode('utf-8', 'ignore').lower()
-                + " " + d["properties"]["ville"].encode('Latin-1', 'ignore').decode('utf-8', 'ignore').lower()
-            )
-            mydict["properties"]["dep"] = parseCP(d["properties"]["cp"])
-            for r in d["properties"]["ruptures"]:
-                if mydate >= "2022-09-15" and r["debut"] > "2022-09-15":
-                    mydict["properties"][r["nom"]] = "R"
-                    mydict["properties"][r["nom"] + "_since"] = r["debut"]
+    for f in final["features"]:
+        for fuel in list_fuels:
+            if fuel in f["properties"]:
+                if f["properties"][fuel] not in ["R", "N"]:
+                    tab[fuel] = tab[fuel] + 1
+                    tab[fuel + "v"].append(float(f["properties"][fuel]))
+                elif f["properties"][fuel] == "R":
+                    tab[fuel + "r"] = tab[fuel + "r"] + 1
 
-                    if r["nom"] == "SP95":
-                        valsp95r.append(1)
-                    if r["nom"] == "SP98":
-                        valsp98r.append(1)
-                    if r["nom"] == "E10":
-                        vale10r.append(1)
-                    if r["nom"] == "Gazole":
-                        valgazr.append(1)
-                    if r["nom"] == "GPLc":
-                        valgplcr.append(1)
-                    if r["nom"] == "E85":
-                        vale85r.append(1)
-
-
-            for p in d["properties"]["prix"]:
-                if(mydate in p["maj"]):
-                    dates.append(p["maj"])
-                    toPush = True
-                    mydict["properties"][p["nom"]] = p["valeur"]
-                    mydict["properties"][p["nom"] + "_maj"] = p["maj"]
-
-                    if p["nom"] == "SP95":
-                        valsp95.append(float(p["valeur"]))
-                    if p["nom"] == "SP98":
-                        valsp98.append(float(p["valeur"]))
-                    if p["nom"] == "E10":
-                        vale10.append(float(p["valeur"]))
-                    if p["nom"] == "Gazole":
-                        valgaz.append(float(p["valeur"]))
-                    if p["nom"] == "GPLc":
-                        valgplc.append(float(p["valeur"]))
-                    if p["nom"] == "E85":
-                        vale85.append(float(p["valeur"]))
-
-            mydict["geometry"] = d["geometry"]
-            if toPush:
-                obj["features"].append(mydict)
-
-
-        obj["properties"] = {}
-        obj["properties"]["SP95"] = [
-            np.min(valsp95),
-            round(np.quantile(valsp95, .333333),2),
-            round(np.quantile(valsp95, .66666),2),
-            np.max(valsp95)
+    final["properties"] = {}
+    for fuel in list_fuels:
+        
+        final["properties"][fuel] = [
+            np.min(tab[fuel + "v"]),
+            round(np.quantile(tab[fuel + "v"], .333333),2),
+            round(np.quantile(tab[fuel + "v"], .66666),2),
+            np.max(tab[fuel + "v"])
         ]
-        obj["properties"]["SP95_mean"] = np.mean(valsp95)
-        obj["properties"]["SP95_median"] = np.median(valsp95)
-        obj["properties"]["SP95_rupture"] = round((len(valsp95r) / (len(valsp95r) + len(valsp95)))*100,2)
+        final["properties"][fuel + "_mean"] = np.mean(tab[fuel + "v"])
+        final["properties"][fuel + "_median"] = np.median(tab[fuel + "v"])
+        final["properties"][fuel + "_rupture"] = round((tab[fuel + "r"] / (tab[fuel + "r"] + tab[fuel]) * 100), 2)
+
+    def getColor(val, fuel):
+        if fuel == "SP95":
+            arr = final["properties"]["SP95"]
+        if fuel == "SP98":
+            arr = final["properties"]["SP98"]
+        if fuel == "E10":
+            arr = final["properties"]["E10"]
+        if fuel == "Gazole":
+            arr = final["properties"]["Gazole"]
+        if fuel == "GPLc":
+            arr = final["properties"]["GPLc"]
+        if fuel == "E85":
+            arr = final["properties"]["E85"]
+        if val < arr[1]:
+            return "1"
+        if val < arr[2]:
+            return "2"
+        if val >= arr[2]:
+            return "3"
+
+    for d in final["features"]:
+        for fuel in list_fuels:
+            if fuel in d["properties"]:
+                if d["properties"][fuel] == "R":
+                    d["properties"][fuel + "_color"] = "0"
+                elif d["properties"][fuel] == "N":
+                    d["properties"][fuel + "_color"] = "-1"
+                else:
+                    d["properties"][fuel + "_color"] = getColor(float(d["properties"][fuel]), fuel)
+
+    final["properties"]["maj"] = datetime.now().isoformat(' ')
 
 
-        obj["properties"]["SP98"] = [
-            np.min(valsp98),
-            round(np.quantile(valsp98, .333333),2),
-            round(np.quantile(valsp98, .66666),2),
-            np.max(valsp98)
-        ]
-        obj["properties"]["SP98_mean"] = np.mean(valsp98)
-        obj["properties"]["SP98_median"] = np.median(valsp98)
-        obj["properties"]["SP98_rupture"] = round((len(valsp98r) / (len(valsp98r) + len(valsp98)))*100,2)
-
-        obj["properties"]["E10"] = [
-            np.min(vale10),
-            round(np.quantile(vale10, .333333),2),
-            round(np.quantile(vale10, .66666),2),
-            np.max(vale10)
-        ]
-        obj["properties"]["E10_mean"] = np.mean(vale10)
-        obj["properties"]["E10_median"] = np.median(vale10)
-        obj["properties"]["E10_rupture"] = round((len(vale10r) / (len(vale10r) + len(vale10)))*100,2)
-
-        obj["properties"]["Gazole"] = [
-            np.min(valgaz),
-            round(np.quantile(valgaz, .333333),2),
-            round(np.quantile(valgaz, .66666),2),
-            np.max(valgaz)
-        ]
-        obj["properties"]["Gazole_mean"] = np.mean(valgaz)
-        obj["properties"]["Gazole_median"] = np.median(valgaz)
-        obj["properties"]["Gazole_rupture"] = round((len(valgazr) / (len(valgazr) + len(valgaz)))*100,2)
-
-
-        obj["properties"]["GPLc"] = [
-            np.min(valgplc),
-            round(np.quantile(valgplc, .333333),2),
-            round(np.quantile(valgplc, .66666),2),
-            np.max(valgplc)
-        ]
-        obj["properties"]["GPLc_mean"] = np.mean(valgplc)
-        obj["properties"]["GPLc_median"] = np.median(valgplc)
-        obj["properties"]["GPLc_rupture"] = round((len(valgplcr) / (len(valgplcr) + len(valgplc)))*100,2)
-
-
-        obj["properties"]["E85"] = [
-            np.min(vale85),
-            round(np.quantile(vale85, .333333),2),
-            round(np.quantile(vale85, .66666),2),
-            np.max(vale85)
-        ]
-        obj["properties"]["E85_mean"] = np.mean(vale85)
-        obj["properties"]["E85_median"] = np.median(vale85)
-        obj["properties"]["E85_rupture"] = round((len(vale85r) / (len(vale85r) + len(vale85)))*100,2)
-
-
-        obj["properties"]["maj"] = max(dates)
-
-        def getColor(val, fuel):
-            if fuel == "SP95":
-                arr = obj["properties"]["SP95"]
-            if fuel == "SP98":
-                arr = obj["properties"]["SP98"]
-            if fuel == "E10":
-                arr = obj["properties"]["E10"]
-            if fuel == "Gazole":
-                arr = obj["properties"]["Gazole"]
-            if fuel == "GPLc":
-                arr = obj["properties"]["GPLc"]
-            if fuel == "E85":
-                arr = obj["properties"]["E85"]
-            if val < arr[1]:
-                return "1"
-            if val < arr[2]:
-                return "2"
-            if val >= arr[2]:
-                return "3"
-
-        for d in obj["features"]:
-            for fuel in ["SP95", "Gazole", "E10", "SP98", "GPLC", "E85"]:
-                if fuel in d["properties"]:
-                    if d["properties"][fuel] == "R":
-                        d["properties"][fuel + "_color"] = "0"
-                    elif d["properties"][fuel] == "N":
-                        d["properties"][fuel + "_color"] = "-1"
-                    else:
-                        d["properties"][fuel + "_color"] = getColor(float(d["properties"][fuel]), fuel)
-
-
-        with open(mydate + ".json", "w") as fp:
-            json.dump(obj, fp)
-
+    with open(mydate + ".json", "w") as fp:
+        json.dump(final, fp)
