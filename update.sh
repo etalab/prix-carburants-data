@@ -4,8 +4,10 @@ rm -rf /tmp/prix-carburants
 mkdir -p /tmp/prix-carburants
 cd /tmp/prix-carburants
 git clone git@github.com:etalab/prix-carburants-data.git
-cp prix-carburants-data/generate_kpis_and_files.py .
 cp prix-carburants-data/reformat-prix-carburants.py .
+cp prix-carburants-data/generate_kpis_and_files.py .
+cp prix-carburants-data/generate_kpis_ruptures.py .
+cp prix-carburants-data/deps_regs.csv .
 wget -P /tmp/prix-carburants --content-disposition https://donnees.roulez-eco.fr/opendata/jour
 tmp=(*.zip)
 filename=${tmp[0]}
