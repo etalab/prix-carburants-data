@@ -34,6 +34,7 @@ python reformat-prix-carburants.py $mydate".xml"
 rm -rf *.zip
 rm -rf *.xml
 python generate_kpis_and_files.py
+python generate_kpis_ruptures.py
 
 git config --global user.email "airflow@etalab.com"
 git config --global user.name "Airflow"
@@ -43,6 +44,8 @@ rm -rf quotidien.geojson
 mkdir $mydate
 cp -r latest_france.json /tmp/prix-carburants/prix-carburants-data/dist/historique/$mydate.json
 cp -r latest_france.json /tmp/prix-carburants/prix-carburants-data/dist/latest_france.json
+cp -r latest_france_ruptures.json /tmp/prix-carburants/prix-carburants-data/dist/latest_france_ruptures.json
+cp -r synthese_ruptures_latest.xlsx /tmp/prix-carburants/prix-carburants-data/dist/synthese_ruptures_latest.xlsx
 cd /tmp/prix-carburants/prix-carburants-data/
 
 if [ -n "$(git status --porcelain)" ]; then
