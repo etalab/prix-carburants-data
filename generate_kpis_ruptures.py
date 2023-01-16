@@ -141,7 +141,7 @@ for d in obj["features"]:
 
 mef = pd.DataFrame(arr)
 mef["essence"] = mef.apply(lambda row: is_rupture_essence(row), axis=1)
-mef["au_moins_un_produit"] = mef.apply(lambda row: is_rupture_essence(row), axis=1)
+mef["au_moins_un_produit"] = mef.apply(lambda row: rupture_au_moins_un_produit(row), axis=1)
 mef["deux_produits"] = mef.apply(lambda row: rupture_deux_produits(row), axis=1)
 
 list_fuels = ["SP95", "E10", "SP98", "Gazole", "GPLc", "E85", "essence", "au_moins_un_produit", "deux_produits"]
