@@ -37,7 +37,8 @@ for d in data['features']:
     )
     mydict["properties"]["dep"] = parseCP(d["properties"]["cp"])
     for r in d["properties"]["ruptures"]:
-        if r["debut"] > "2022-09-15":
+        # old 2022-09-15
+        if r["debut"] > "2023-01-01":
             mydict["properties"][r["nom"]] = "R"
         else:
             mydict["properties"][r["nom"]] = "N"
@@ -88,7 +89,7 @@ for d in data["features"]:
         mydict["properties"] = {}
     mydict["geometry"] = d["geometry"]
     final["features"].append(mydict)
-        
+
 tab = {
     "SP95": 0,
     "SP95r": 0,
@@ -169,7 +170,7 @@ with open("latest_france.json", "w") as fp:
     json.dump(final, fp)
 
 
-with open("dist/prix_2022.json", 'r') as fp:
+with open("prix-carburants-data/dist/prix_2022.json", 'r') as fp:
     data = json.load(fp)
 
 for d in data:
@@ -192,5 +193,5 @@ mydict["E85_mean"] = final["properties"]["E85_mean"]
 mydict["E85_median"] = final["properties"]["E85_median"]
 data.append(mydict)
 
-with open("dist/prix_2022.json", 'w') as fp:
+with open("prix-carburants-data/dist/prix_2022.json", 'w') as fp:
     json.dump(data, fp)
