@@ -173,9 +173,7 @@ with open("latest_france.json", "w") as fp:
 with open("prix-carburants-data/dist/prix_2022.json", 'r') as fp:
     data = json.load(fp)
 
-for d in data:
-    if d["date"] == final["properties"]["maj"][:10]:
-        del d
+data = [d for d in data if d['date'] != final["properties"]["maj"][:10]]
 
 mydict = {}
 mydict["date"] = final["properties"]["maj"][:10]
